@@ -1,0 +1,16 @@
+# Virtual environment - never commit this
+.venv/
+
+# Python bytecode cache
+__pycache__/
+*.py[cod]
+
+# Ruff cache
+.ruff_cache/
+
+# Local tool settings
+.claude/
+
+# Environment variables and secrets (API keys go here later)
+.env
+.env.*
