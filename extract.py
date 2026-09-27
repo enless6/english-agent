@@ -77,8 +77,10 @@ for sent in data["key_sentences"]:
         print(repr(sent["text"]))
 
 print(f"key_sentences: {len(data['key_sentences'])}  mismatches:{mismatches}")
+
+
 def has_chinese(text: str) -> bool:
-      return any("\u4e00" <= ch <= "\u9fff" for ch in text)
+    return any("\u4e00" <= ch <= "\u9fff" for ch in text)
 
 
 for sent in data["key_sentences"]:
@@ -87,5 +89,4 @@ for sent in data["key_sentences"]:
 
 for entry in data["vocabulary"]:
     if has_chinese(entry["usage_note"]):
-        print("CHINESE LEAK in usage_note:",
-repr(entry["usage_note"]))
+        print("CHINESE LEAK in usage_note:", repr(entry["usage_note"]))
