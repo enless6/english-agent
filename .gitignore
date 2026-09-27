@@ -14,3 +14,7 @@ __pycache__/
 # Environment variables and secrets (API keys go here later)
 .env
 .env.*
+
+# Local script output
+output.json
+raw_output.txt
