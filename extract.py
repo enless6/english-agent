@@ -43,11 +43,13 @@ Yet this shift introduces a subtle risk: engineers may gradually lose the abilit
 The most effective teams treat these tools as accelerators rather than replacements, keeping their own judgment firmly in the loop.
   """
 
+clean_text = " ".join(TEXT.split())
+
 response = client.chat.completions.create(
     model="deepseek-flash",
     messages=[
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": TEXT},
+        {"role": "user", "content": clean_text},
     ],
     response_format={"type": "json_object"},
 )
@@ -61,4 +63,29 @@ except json.JSONDecodeError as e:
     print(raw)
     raise SystemExit(f"JSON decode error: {e}")
 
-print(json.dumps(data, indent=2, ensure_ascii=False))
+with open("raw_output.txt", "w", encoding="utf-8") as f:
+    f.write(raw)
+
+with open("output.json", "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+
+mismatches = 0
+for sent in data["key_sentences"]:
+    if sent["text"] not in clean_text:
+        mismatches += 1
+        print("MISMATCH:")
+        print(repr(sent["text"]))
+
+print(f"key_sentences: {len(data['key_sentences'])}  mismatches:{mismatches}")
+def has_chinese(text: str) -> bool:
+      return any("\u4e00" <= ch <= "\u9fff" for ch in text)
+
+
+for sent in data["key_sentences"]:
+    if has_chinese(sent["note"]):
+        print("CHINESE LEAK in note:", repr(sent["note"]))
+
+for entry in data["vocabulary"]:
+    if has_chinese(entry["usage_note"]):
+        print("CHINESE LEAK in usage_note:",
+repr(entry["usage_note"]))
