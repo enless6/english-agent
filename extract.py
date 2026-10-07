@@ -36,6 +36,49 @@ The JSON must have exactly these fields:
 - difficulty: string, one of easy / medium / hard
   """
 
+
+def call_model(text: str) -> str:
+    response = client.chat.completions.create(
+        model="deepseek-flash",
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": text},
+        ],
+        response_format={"type": "json_object"},
+    )
+    return response.choices[0].message.content
+
+
+def parse_json(raw: str) -> dict:
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"JSON decode error: {e}") from e
+
+
+def has_chinese(text: str) -> bool:
+    return any("\u4e00" <= ch <= "\u9fff" for ch in text)
+
+
+def inspect(data: dict, source_text: str) -> list[str]:
+    """返回问题列表。空列表=全过"""
+    problems = []
+
+    for sent in data["key_sentences"]:
+        if sent["text"] not in source_text:
+            problems.append(f"MISMATCH: {sent['text']!r}")
+
+    for sent in data["key_sentences"]:
+        if has_chinese(sent["note"]):
+            problems.append(f"CHINESE LEAK in note: {sent['note']!r}")
+
+    for entry in data["vocabulary"]:
+        if has_chinese(entry["usage_note"]):
+            problems.append(f"CHINESE LEAK in usage_note: {entry['usage_note']!r}")
+
+    return problems
+
+
 TEXT = """
 Large language models have transformed how software engineers approach problem-solving. 
 Rather than writing every function by hand, developers now delegate routine tasks to models that can generate, refactor, and explain code. 
@@ -43,50 +86,24 @@ Yet this shift introduces a subtle risk: engineers may gradually lose the abilit
 The most effective teams treat these tools as accelerators rather than replacements, keeping their own judgment firmly in the loop.
   """
 
-clean_text = " ".join(TEXT.split())
 
-response = client.chat.completions.create(
-    model="deepseek-flash",
-    messages=[
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": clean_text},
-    ],
-    response_format={"type": "json_object"},
-)
+def main():
+    clean_text = " ".join(TEXT.split())
+    raw = call_model(clean_text)
 
-raw = response.choices[0].message.content
+    with open("raw_output.txt", "w", encoding="utf-8") as f:
+        f.write(raw)
 
-try:
-    data = json.loads(raw)
-except json.JSONDecodeError as e:
-    print("Failed to parse model output:")
-    print(raw)
-    raise SystemExit(f"JSON decode error: {e}")
+    data = parse_json(raw)
 
-with open("raw_output.txt", "w", encoding="utf-8") as f:
-    f.write(raw)
+    with open("output.json", "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
-with open("output.json", "w", encoding="utf-8") as f:
-    json.dump(data, f, indent=2, ensure_ascii=False)
-
-mismatches = 0
-for sent in data["key_sentences"]:
-    if sent["text"] not in clean_text:
-        mismatches += 1
-        print("MISMATCH:")
-        print(repr(sent["text"]))
-
-print(f"key_sentences: {len(data['key_sentences'])}  mismatches:{mismatches}")
+    problems = inspect(data, clean_text)
+    print(f"key_sentences: {len(data['key_sentences'])}  problems: {len(problems)}")
+    for p in problems:
+        print(p)
 
 
-def has_chinese(text: str) -> bool:
-    return any("\u4e00" <= ch <= "\u9fff" for ch in text)
-
-
-for sent in data["key_sentences"]:
-    if has_chinese(sent["note"]):
-        print("CHINESE LEAK in note:", repr(sent["note"]))
-
-for entry in data["vocabulary"]:
-    if has_chinese(entry["usage_note"]):
-        print("CHINESE LEAK in usage_note:", repr(entry["usage_note"]))
+if __name__ == "__main__":
+    main()
