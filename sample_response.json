@@ -1,0 +1,90 @@
+{
+  "source": "unknown",
+  "topic": "Impact of LLMs on software engineering",
+  "key_sentences": [
+    {
+      "text": "Large language models have transformed how software engineers approach problem-solving.",
+      "translation": "大型语言模型已经改变了软件工程师解决问题的方式。",
+      "note": "The present perfect 'have transformed' is used to describe a change that started in the past and continues to be relevant. The verb 'transform' is transitive, taking the clause 'how软件 engineers approach problem-solving' as its object."
+    },
+    {
+      "text": "Rather than writing every function by hand, developers now delegate routine tasks to models that can generate, refactor, and explain code.",
+      "translation": "与其手工编写每一个函数，开发者现在将日常任务委托给能够生成、重构和解释代码的模型。",
+      "note": "The construction 'Rather than + gerund' introduces an alternative that is not chosen. The relative clause 'that can generate, refactor, and explain code' modifies 'models' and uses parallel verbs."
+    },
+    {
+      "text": "Yet this shift introduces a subtle risk: engineers may gradually lose the ability to reason about systems they did not write themselves.",
+      "translation": "然而这种转变引入了一个微妙的风险：工程师可能会逐渐失去对他们自己未曾编写的系统进行推理的能力。",
+      "note": "The colon introduces an explanation of the 'subtle risk.' The modal 'may' expresses possibility, and 'they did not write themselves' is a reduced relative clause modifying 'systems.'"
+    },
+    {
+      "text": "The most effective teams treat these tools as accelerators rather than replacements, keeping their own judgment firmly in the loop.",
+      "translation": "最有效的团队将这些工具视为加速器而非替代品，将自己的判断牢牢保持在决策循环中。",
+      "note": "The structure 'treat A as B rather than C' means to regard A as B and not C. The participial phrase 'keeping their own judgment firmly in the loop' describes a simultaneous action or result."
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "transform",
+      "pos": "verb",
+      "definition": "to change completely in form or appearance; to make a marked change in",
+      "example": "The internet has transformed the way we communicate.",
+      "usage_note": "Often used with 'into' to describe the result (e.g., transform into). In the passage, it takes a clause as object: 'transformed how...'."
+    },
+    {
+      "word": "approach",
+      "pos": "verb",
+      "definition": "to begin to deal with a task, problem, etc. in a particular way",
+      "example": "She approached the problem from a different angle.",
+      "usage_note": "Commonly used with nouns like 'problem,' 'task,' or 'situation.' In the passage, it means to deal with problem-solving."
+    },
+    {
+      "word": "delegate",
+      "pos": "verb",
+      "definition": "to give a particular job, duty, or responsibility to someone else",
+      "example": "A good manager knows how to delegate tasks to the team.",
+      "usage_note": "Often followed by 'to' (delegate something to someone). It can also be a noun meaning a representative."
+    },
+    {
+      "word": "routine",
+      "pos": "adjective",
+      "definition": "regular; usual; not unusual or special",
+      "example": "Checking emails is part of my daily routine work.",
+      "usage_note": "As an adjective, it describes things that are done regularly. As a noun, it means a fixed sequence of actions."
+    },
+    {
+      "word": "refactor",
+      "pos": "verb",
+      "definition": "to restructure existing computer code without changing its external behavior, to improve readability or efficiency",
+      "example": "We need to refactor this module to make it more maintainable.",
+      "usage_note": "A technical term in software engineering. It implies improving internal structure while preserving functionality."
+    },
+    {
+      "word": "subtle",
+      "pos": "adjective",
+      "definition": "not obvious; delicate or precise; difficult to notice",
+      "example": "The difference between the two designs is subtle but important.",
+      "usage_note": "Often used to describe changes, differences, or flavors that are not immediately apparent."
+    },
+    {
+      "word": "reason",
+      "pos": "verb",
+      "definition": "to think logically about something; to form judgments by using logical thinking",
+      "example": "He reasoned that the best course of action was to wait.",
+      "usage_note": "Often used with 'about' or a 'that' clause. In the passage, 'reason about systems' means to think logically about how systems work."
+    },
+    {
+      "word": "judgment",
+      "pos": "noun",
+      "definition": "the ability to make considered decisions or come to sensible conclusions",
+      "example": "You should trust your own judgment in this matter.",
+      "usage_note": "Often used in the phrase 'in my judgment' or 'good/poor judgment.' It refers to the process of forming an opinion or evaluation."
+    }
+  ],
+  "takeaways": [
+    "Large language models have changed how software engineers work, but they also risk eroding engineers' ability to reason about code they didn't write.",
+    "Effective teams use LLMs as tools to accelerate their work, not as replacements for their own judgment.",
+    "It's important for engineers to stay actively involved in reasoning about systems, even when using AI to generate or refactor code."
+  ],
+  "difficulty": "medium"
+}
