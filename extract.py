@@ -153,27 +153,31 @@ def check_content(data: dict, source_text: str) -> list[str]:
     return problems
 
 
+def run(text: str) -> tuple[dict, list[str], str]:
+    """调模型 → 解析 → 校验，返回 (数据, 问题列表, 模型原始响应)。
+
+    不写文件、不打印 —— 服务里每个请求都写同一个文件名会互相覆盖。
+    """
+    clean_text = " ".join(text.split())
+    raw = call_model(clean_text)
+    data = parse_json(raw)
+    return data, validate(data, clean_text), raw
+
+
 TEXT = """
-Large language models have transformed how software engineers approach problem-solving. 
-Rather than writing every function by hand, developers now delegate routine tasks to models that can generate, refactor, and explain code. 
-Yet this shift introduces a subtle risk: engineers may gradually lose the ability to reason about systems they did not write themselves.
-The most effective teams treat these tools as accelerators rather than replacements, keeping their own judgment firmly in the loop.
+Large language models have transformed how software engineers approach problem-solving. Rather than writing every function by hand, developers now delegate routine tasks to models that can generate, refactor, and explain code. Yet this shift introduces a subtle risk: engineers may gradually lose the ability to reason about systems they did not write themselves. The most effective teams treat these tools as accelerators rather than replacements, keeping their own judgment firmly in the loop.
   """
 
 
 def main():
-    clean_text = " ".join(TEXT.split())
-    raw = call_model(clean_text)
+    data, problems, raw = run(TEXT)
 
     with open("raw_output.txt", "w", encoding="utf-8") as f:
         f.write(raw)
 
-    data = parse_json(raw)
-
     with open("output.json", "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-    problems = validate(data, clean_text)
     print(f"key_sentences: {len(data['key_sentences'])}  problems: {len(problems)}")
     for p in problems:
         print(p)
