@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 import extract
@@ -17,5 +17,8 @@ def health():
 
 @app.post("/ingest")
 def ingest(req: IngestRequest):
-    data, problems, _ = extract.run(req.text)
+    try:
+        data, problems, _ = extract.run(req.text)
+    except RuntimeError as e:
+        raise HTTPException(status_code=502, detail=str(e)) from e
     return {"problems": problems, "data": data}

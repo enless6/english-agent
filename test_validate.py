@@ -63,5 +63,33 @@ bad = fresh()
 bad["key_sentences"][0]["text"] = "This sentence does not appear in the passage."
 assert any("MISMATCH" in p for p in extract.check_content(bad, SOURCE)), bad
 
+# ---------- 重试 ----------
+
+# 把模型换成一个假的：第一次返回坏 JSON，第二次返回干净的好数据。
+CLEAN = copy.deepcopy(GOOD)
+CLEAN["key_sentences"][0]["note"] = CLEAN["key_sentences"][0]["note"].replace(
+    "软件", " software"
+)
+
+calls = []
+
+
+def flaky(messages):
+    calls.append(messages)
+    if len(calls) == 1:
+        return '{"broken": '
+    return json.dumps(CLEAN, ensure_ascii=False)
+
+
+real_call_model = extract.call_model
+extract.call_model = flaky
+data, problems, _ = extract.run(extract.TEXT)
+extract.call_model = real_call_model
+
+assert problems == [], problems
+assert len(calls) == 2, len(calls)
+# 第二次请求必须带着反馈：system + user + assistant + user(反馈)
+assert len(calls[1]) == 4, len(calls[1])
+assert "problems" in calls[1][3]["content"]
 
 print("all passed")

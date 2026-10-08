@@ -37,13 +37,10 @@ The JSON must have exactly these fields:
   """
 
 
-def call_model(text: str) -> str:
+def call_model(messages: list[dict]) -> str:
     response = client.chat.completions.create(
         model="deepseek-flash",
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": text},
-        ],
+        messages=messages,
         response_format={"type": "json_object"},
     )
     return response.choices[0].message.content
@@ -153,15 +150,48 @@ def check_content(data: dict, source_text: str) -> list[str]:
     return problems
 
 
-def run(text: str) -> tuple[dict, list[str], str]:
-    """调模型 → 解析 → 校验，返回 (数据, 问题列表, 模型原始响应)。
+MAX_ATTEMPTS = 3
 
-    不写文件、不打印 —— 服务里每个请求都写同一个文件名会互相覆盖。
+
+def run(text: str, max_attempts: int = MAX_ATTEMPTS) -> tuple[dict, list[str], str]:
+    """调模型 → 解析 → 校验。不合格就带着问题清单重试。
+
+    返回 (数据, 遗留问题, 最后一次的原始响应)。
+    全部尝试都解不出 JSON 时抛 RuntimeError。
     """
     clean_text = " ".join(text.split())
-    raw = call_model(clean_text)
-    data = parse_json(raw)
-    return data, validate(data, clean_text), raw
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": clean_text},
+    ]
+
+    last_good = None
+
+    for _ in range(max_attempts):
+        raw = call_model(messages)
+        try:
+            data = parse_json(raw)
+        except ValueError as e:
+            problems = [f"INVALID JSON: {e}"]
+        else:
+            problems = validate(data, clean_text)
+            if not problems:
+                return data, [], raw
+            last_good = (data, problems, raw)
+
+        messages.append({"role": "assistant", "content": raw})
+        messages.append(
+            {
+                "role": "user",
+                "content": "Your previous output had these problems:\n"
+                + "\n".join(problems)
+                + "\nReturn the complete JSON again with them fixed.",
+            }
+        )
+
+    if last_good is None:
+        raise RuntimeError(f"no parseable JSON after {max_attempts} attempts")
+    return last_good
 
 
 TEXT = """
