@@ -12,9 +12,11 @@ with open("sample_response.json", encoding="utf-8") as f:
 
 SOURCE = " ".join(extract.TEXT.split())
 
+
 def fresh():
     """每次从干净样本复制一份，免得上一个用例改脏了下一个。"""
     return copy.deepcopy(GOOD)
+
 
 # ---------- 形状层 ----------
 
