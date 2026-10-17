@@ -30,28 +30,28 @@ MAX_INPUT_CHARS = 20_000
 def ingest(req: IngestRequest):
     if req.url:
         try:
-            html, resolved = fetch.fetch_url(req.url)
+            text, resolved = fetch.fetch_document(req.url)
         except fetch.FetchError as e:
             raise HTTPException(status_code=e.status, detail=str(e)) from e
-        text = fetch.extract_text(html)
         source = resolved
         if not text:
             raise HTTPException(
                 status_code=422,
-                detail="no text could be extracted (the page may need JavaScript)",
+                detail="no text could be extracted (scanned PDF or JavaScript-only page)",
             )
     else:
         text = req.text
         source = None
 
-    if len(text) > MAX_INPUT_CHARS:
-        raise HTTPException(
-            status_code=422,
-            detail=f"input is {len(text)} chars, over the {MAX_INPUT_CHARS} limit",
-        )
+    text, truncated = fetch.truncate(text, MAX_INPUT_CHARS)
 
     try:
         data, problems, _ = extract.run(text, source=source)
     except RuntimeError as e:
         raise HTTPException(status_code=502, detail=str(e)) from e
-    return {"problems": problems, "data": data}
+
+    return {
+        "problems": problems,
+        "data": data,
+        "meta": {"chars_used": len(text), "truncated": truncated},
+    }
