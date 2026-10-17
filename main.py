@@ -1,4 +1,3 @@
-import httpx
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, model_validator
 
@@ -24,20 +23,32 @@ def health():
     return {"status": "ok"}
 
 
+MAX_INPUT_CHARS = 20_000
+
+
 @app.post("/ingest")
 def ingest(req: IngestRequest):
     if req.url:
         try:
             html, resolved = fetch.fetch_url(req.url)
-        except httpx.HTTPError as e:
-            raise HTTPException(
-                status_code=502, detail=f"could not fetch {req.url}: {e}"
-            ) from e
+        except fetch.FetchError as e:
+            raise HTTPException(status_code=e.status, detail=str(e)) from e
         text = fetch.extract_text(html)
         source = resolved
+        if not text:
+            raise HTTPException(
+                status_code=422,
+                detail="no text could be extracted (the page may need JavaScript)",
+            )
     else:
         text = req.text
         source = None
+
+    if len(text) > MAX_INPUT_CHARS:
+        raise HTTPException(
+            status_code=422,
+            detail=f"input is {len(text)} chars, over the {MAX_INPUT_CHARS} limit",
+        )
 
     try:
         data, problems, _ = extract.run(text, source=source)

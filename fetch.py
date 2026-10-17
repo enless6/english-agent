@@ -1,11 +1,29 @@
 import httpx
 from bs4 import BeautifulSoup
 
+ALLOWED_TYPES = ("text/html", "application/xhtml+xml", "text/plain")
+
+
+class FetchError(Exception):
+    """抓取失败。status 是建议返回给客户端的状态码。"""
+
+    def __init__(self, message: str, status: int = 502):
+        super().__init__(message)
+        self.status = status
+
 
 def fetch_url(url: str) -> tuple[str, str]:
-    """返回 (HTML, 最终 URL)。重定向之后的地址才是真的。"""
-    resp = httpx.get(url, timeout=10.0, follow_redirects=True)
-    resp.raise_for_status()
+    """抓一个网页，返回 (HTML, 最终 URL)。只接受 HTML / 纯文本。"""
+    try:
+        resp = httpx.get(url, timeout=10.0, follow_redirects=True)
+        resp.raise_for_status()
+    except httpx.HTTPError as e:
+        raise FetchError(f"could not fetch {url}: {e}") from e
+
+    ctype = resp.headers.get("content-type", "").split(";")[0].strip().lower()
+    if ctype not in ALLOWED_TYPES:
+        raise FetchError(f"unsupported content type: {ctype or 'unknown'}", status=415)
+
     return resp.text, str(resp.url)
 
 
