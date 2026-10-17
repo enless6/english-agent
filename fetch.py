@@ -2,11 +2,11 @@ import httpx
 from bs4 import BeautifulSoup
 
 
-def fetch_url(url: str) -> str:
-    """把一个 URL 抓成文本。"""
+def fetch_url(url: str) -> tuple[str, str]:
+    """返回 (HTML, 最终 URL)。重定向之后的地址才是真的。"""
     resp = httpx.get(url, timeout=10.0, follow_redirects=True)
     resp.raise_for_status()
-    return resp.text
+    return resp.text, str(resp.url)
 
 
 def extract_text(html: str) -> str:
@@ -21,7 +21,8 @@ def extract_text(html: str) -> str:
 
 
 if __name__ == "__main__":
-    html = open("page.html", encoding="utf-8").read()
+    with open("page.html", encoding="utf-8") as f:
+        html = f.read()
     text = extract_text(html)
     print(f"clean {len(text)} 字符\n")
     for i in range(0, len(text), 300):

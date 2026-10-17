@@ -153,16 +153,21 @@ def check_content(data: dict, source_text: str) -> list[str]:
 MAX_ATTEMPTS = 3
 
 
-def run(text: str, max_attempts: int = MAX_ATTEMPTS) -> tuple[dict, list[str], str]:
+def run(
+    text: str,
+    source: str | None = None,
+    max_attempts: int = MAX_ATTEMPTS,
+) -> tuple[dict, list[str], str]:
     """调模型 → 解析 → 校验。不合格就带着问题清单重试。
 
     返回 (数据, 遗留问题, 最后一次的原始响应)。
     全部尝试都解不出 JSON 时抛 RuntimeError。
     """
     clean_text = " ".join(text.split())
+    user_content = clean_text if source is None else f"Source: {source}\n\n{clean_text}"
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": clean_text},
+        {"role": "user", "content": user_content},
     ]
 
     last_good = None
